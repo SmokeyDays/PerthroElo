@@ -1,3 +1,4 @@
+import datetime
 from multielo import MultiElo
 import numpy as np
 import json
@@ -7,6 +8,10 @@ import plotext as plt
 elo = MultiElo()
 
 data_path = './data/holdem_player_data.json'
+
+def get_data_backup_path():
+  time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+  return f"./data/data_backup_{time}.json"
 
 '''
 format of data:
@@ -61,7 +66,7 @@ def display_player(player_name):
     rating_history = cur_player['rating_history']
     # if len(cur_player['rating_history']) > 100:
     #   rating_history = cur_player['rating_history'][-100:]
-    plt.grid(0, 1)
+    # plt.grid(0, 1)
     plt.plot(rating_history)
     plt.title(f"{cur_player['name']}({cur_player['current_rating']})'s Rating History\n")
     plt.show()
@@ -173,21 +178,59 @@ if __name__ == '__main__':
       display_player(player_name)
     elif choice == 3:
       # enter player names split by space
-      words = input("Enter player names split by space: ").split()
-      # get last word
-      para = words[-1]
-      if para == '-s':
-        words.pop()
-        # get scores
-        scores = input("Enter scores split by space: ").split()
-        scores = [int(score) for score in scores]
-        player_rank_list = words
-        record_match(player_rank_list, scores)
+      if True:
+        print("Enter player name (and score if need)\n each line for one player\n and enter 'end' to finish")
+        players = []
+        scores = []
+        while True:
+          words = input().split()
+          if not words:
+            continue
+          if words[0] == 'end':
+            break
+          if len(words) == 1:
+            players.append(words[0])
+          elif len(words) == 2:
+            players.append(words[0])
+            if words[1].isdigit():
+              scores.append(int(words[1]))
+            else:
+              print("Invalid score")
+              continue
+        if not players:
+          print("No player entered")
+          continue
+        if len(scores) > 0 and len(players) != len(scores):
+          print("Number of players and scores do not match")
+          continue
+        if len(scores) == 0:
+          record_match(players)
+        else:
+          record_match(players, scores)
       else:
-        player_rank_list = words
-        record_match(player_rank_list)
+        words = input("Enter player names split by space: ").split()
+        # get last word
+        para = words[-1]
+        if para == '-s':
+          words.pop()
+          # get scores
+          scores = input("Enter scores split by space: ").split()
+          scores = [int(score) for score in scores]
+          player_rank_list = words
+          if len(player_rank_list) != len(scores):
+            print("Number of players and scores do not match")
+            continue
+          record_match(player_rank_list, scores)
+        else:
+          player_rank_list = words
+          record_match(player_rank_list)
     elif choice == 4:
       list_players_by_rank()
     elif choice == 0:
       break
     input("Press any key to continue")
+  # backup
+  with open(data_path, 'r') as f:
+    data = json.load(f)
+  with open(get_data_backup_path(), 'w') as f:
+    json.dump(data, f)
