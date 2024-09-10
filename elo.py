@@ -24,6 +24,28 @@ format of data:
 ]
 '''
 
+def get_color_by_rating(rating):
+  if rating < 1400:
+    #green
+    return 32
+  elif rating < 1600:
+    #yellow
+    return 33
+  else:
+    return 31 # red
+
+def get_title_by_rating(rating):
+  if rating < 1400:
+    return '34=3000'
+  elif rating < 1600:
+    return 'Exactly Middle'
+  else:
+    return 'NO ALLIN'
+
+
+def color_text(text, color):
+  return f"\033[{color}m{text}\033[0m"
+
 def get_data():
   try:
     with open(data_path, 'r') as f:
@@ -63,7 +85,19 @@ def display_player(player_name):
   
   if cur_player: 
     os.system('cls' if os.name == 'nt' else 'clear')
+    colored_title = color_text(get_title_by_rating(cur_player['current_rating']), get_color_by_rating(cur_player['current_rating']))
+    cur_rating_display = color_text(f"{cur_player['current_rating']}", get_color_by_rating(cur_player['current_rating']))
+    print(f"[-| {colored_title} |-]{cur_player['name']}({cur_rating_display})")
     rating_history = cur_player['rating_history']
+    rating_history_display = [color_text(f"{rating}", get_color_by_rating(rating)) for rating in rating_history]
+    rating_str = " ".join(rating_history_display)
+    print(f"Rating History: {rating_str}")
+
+    max_rating = max(cur_player['rating_history'])
+    max_rating_display = color_text(f"{max_rating}", get_color_by_rating(max_rating))
+    print(f"Max Rating: {max_rating_display}")
+    input("Press any key to continue")
+    
     # if len(cur_player['rating_history']) > 100:
     #   rating_history = cur_player['rating_history'][-100:]
     # plt.grid(0, 1)
@@ -92,12 +126,15 @@ def get_new_ratings_by_rankings_and_scores(ratings, scores, k_factor):
   for i in range(n):
     scores[i] /= tot_score
   new_ratings = []
+  k_factor_adjusted = k_factor
+  if True:
+    k_factor_adjusted = k_factor * n
   for i in range(n):
-    new_rating = (scores[i] - win_rates[i]) * k_factor + ratings[i]
+    new_rating = (scores[i] - win_rates[i]) * k_factor_adjusted + ratings[i]
     new_ratings.append(new_rating)
   return new_ratings
 
-def record_match(players, scores=None, k_factor=200):
+def record_match(players, scores=None, k_factor=32):
   data = get_data()
   rating_list = []
   for player in players:
@@ -131,8 +168,11 @@ def record_match(players, scores=None, k_factor=200):
       change_str = f"{red}{delta_ratings[i]}{end}"
     else:
       change_str = f"{yellow}{delta_ratings[i]}{end}"
-
-    format_str = "{:<20}: {:<10} -> {:<10} ({:})".format(players[i], rating_list[i], new_ratings[i], change_str)
+    rating_display = color_text(f"{rating_list[i]}", get_color_by_rating(rating_list[i]))
+    new_rating_display = color_text(f"{new_ratings[i]}", get_color_by_rating(new_ratings[i]))
+    title_colored_display = color_text(get_title_by_rating(rating_list[i]), get_color_by_rating(rating_list[i]))
+    new_title_colored_display = color_text(get_title_by_rating(new_ratings[i]), get_color_by_rating(new_ratings[i]))
+    format_str = "{:<20}: {:<10} -> {:<10} ({:}) ({:} -> {:})".format(players[i], rating_display, new_rating_display, change_str, title_colored_display, new_title_colored_display)
     print(format_str)
     
   for i in range(len(players)):
@@ -147,7 +187,9 @@ def list_players_by_rank():
   data.sort(key=lambda x: x['current_rating'], reverse=True)
   print("{:<8} {:<20} {:<10}".format('Ranking', 'Player', 'Rating'))
   for i in range(len(data)):
-    print("{:<8} {:<20} {:<10}".format(i+1, data[i]['name'], data[i]['current_rating']))
+    rating_display = color_text(f"{data[i]['current_rating']}", get_color_by_rating(data[i]['current_rating']))
+    # title_colored = color_text(get_title_by_rating(data[i]['current_rating']), get_color_by_rating(data[i]['current_rating']))
+    print("{:<8} {:<20} {:<10}".format(i+1, data[i]['name'], rating_display))
 
 if __name__ == '__main__':
   while True:
