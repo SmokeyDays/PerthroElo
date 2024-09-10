@@ -158,7 +158,7 @@ if __name__ == '__main__':
     print("3. Record Match")
     print("4. List Players by Rank")
     print("")
-    print("0. Exit")
+    print("0. Save and Exit")
     print("***************************")
     choice = input("Enter your choice: ")
     if not choice.isdigit():
