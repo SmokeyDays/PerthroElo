@@ -7,7 +7,33 @@ import plotext as plt
 
 elo = MultiElo()
 
-data_path = './data/holdem_player_data.json'
+config = {
+  'brass': {
+    'k_factor': 32,
+    'initial_rating': 1500,
+    'save_path': './data/brass_player_data.json',
+    'display_title': 'Brass Rating System',
+    # blue
+    'color': 34,
+  },
+  'holdem': {
+    'k_factor': 32,
+    'initial_rating': 1500,
+    'save_path': './data/holdem_player_data.json',
+    'display_title': 'Holdem Rating System',
+    # purple background
+    'color': 35,
+  }
+}
+
+cur_config = config['brass']
+
+def get_data_path():
+  return cur_config['save_path']
+
+def switch_config(game_name):
+  global cur_config
+  cur_config = config[game_name]
 
 def get_data_backup_path():
   time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
@@ -48,19 +74,19 @@ def color_text(text, color):
 
 def get_data():
   try:
-    with open(data_path, 'r') as f:
+    with open(get_data_path(), 'r') as f:
       pass
   except FileNotFoundError:
-    with open(data_path, 'w') as f:
+    with open(get_data_path(), 'w') as f:
       json.dump([], f)
-  with open(data_path, 'r') as f:
+  with open(get_data_path(), 'r') as f:
     data = json.load(f)
   if not data:
     data = []
   return data
 
 def save_data(data):
-  with open(data_path, 'w') as f:
+  with open(get_data_path(), 'w') as f:
     json.dump(data, f)
 
 def register_player(player_name, initial_rating=1500):
@@ -191,15 +217,46 @@ def list_players_by_rank():
     # title_colored = color_text(get_title_by_rating(data[i]['current_rating']), get_color_by_rating(data[i]['current_rating']))
     print("{:<8} {:<20} {:<10}".format(i+1, data[i]['name'], rating_display))
 
-if __name__ == '__main__':
+def switch_game():
   while True:
     os.system('cls' if os.name == 'nt' else 'clear')
     print("*****ELO RATING SYSTEM*****")
+    print("1. Brass")
+    print("2. Holdem")
+    print("***************************")
+    choice = input("Enter your choice: ")
+    if not choice.isdigit():
+      print("Invalid choice")
+    else:
+      choice = int(choice)
+      if choice < 1 or choice > 2:
+        print("Invalid choice")
+    if choice == 1:
+      switch_config('brass')
+      break
+    elif choice == 2:
+      switch_config('holdem')
+      break
+
+if __name__ == '__main__':
+  switch_game()
+  # main loop
+  while True:
+    os.system('cls' if os.name == 'nt' else 'clear')
+    
+    cur_title = "   {:<22}".format(cur_config['display_title'])
+    colored_title = color_text(cur_title, cur_config['color'])
+    print("***************************")
+    print("*                         *")
+    print(f"*{colored_title}*")
+    print("*                         *")
+    print("***************************")
     print("1. Register Player")
     print("2. Display Player")
     print("3. Record Match")
     print("4. List Players by Rank")
     print("")
+    print("9. Switch Game")
     print("0. Save and Exit")
     print("***************************")
     choice = input("Enter your choice: ")
@@ -268,11 +325,13 @@ if __name__ == '__main__':
           record_match(player_rank_list)
     elif choice == 4:
       list_players_by_rank()
+    elif choice == 9:
+      switch_game()
     elif choice == 0:
       break
     input("Press any key to continue")
-  # backup
-  with open(data_path, 'r') as f:
-    data = json.load(f)
-  with open(get_data_backup_path(), 'w') as f:
-    json.dump(data, f)
+    # backup
+    with open(get_data_path(), 'r') as f:
+      data = json.load(f)
+    with open(get_data_backup_path(), 'w') as f:
+      json.dump(data, f)
