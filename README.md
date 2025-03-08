@@ -30,8 +30,11 @@ to get start.
 
 ### Usages
 First, select a appropriate Rating System
+
 Second, Register Players
+
 Third, Record Match
+
 Finally, Save and Exit
 
 ## Features
@@ -40,3 +43,4 @@ Finally, Save and Exit
 - Gaming history.
 - Rank list
 - Customizable title system
+- Edit config to add more games
